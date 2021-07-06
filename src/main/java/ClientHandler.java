@@ -50,6 +50,8 @@ public class ClientHandler implements Runnable{
                     System.out.println(ret);
                     System.out.println(clients.size());
                     startGame();
+                } else if (ret.contains("message")) {
+                    getAndSendMess(ret);
                 }
             }
         } catch (IOException e) {
@@ -95,6 +97,11 @@ public class ClientHandler implements Runnable{
         if (clients.size() == 2) {
             outToAll(send);
         }
+    }
+
+    //Nhan va gui message den cac client
+    public void getAndSendMess(String mess) {
+        System.out.println(mess);
     }
 
 

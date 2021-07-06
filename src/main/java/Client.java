@@ -25,7 +25,10 @@ public class Client {
     JPanel p;
     JButton[][] btns;
     JButton btnOk;
+    JButton btnSendMes;
     JTextField inpName;
+    JTextField inpMessage;
+    JTextArea chatBox;
     JLabel lblName;
     JLabel lblWaiting;
 
@@ -162,8 +165,38 @@ public class Client {
 
         //Ten nguoi choi
         lblName = new JLabel();
-        lblName.setBounds(750, 50, 200,100);
+        lblName.setBounds(750, 80, 200,100);
         f.add(lblName);
+
+        //Chat box
+        chatBox = new JTextArea();
+        chatBox.setBounds(650, 150, 300, 400);
+        chatBox.setAutoscrolls(true);
+        chatBox.setEditable(false);
+        chatBox.setLineWrap(true);
+        chatBox.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        f.add(chatBox);
+
+        //Input send message
+        inpMessage = new JTextField();
+        inpMessage.setBounds(650, 570, 250, 30);
+        f.add(inpMessage);
+
+        //Btn send message
+        btnSendMes = new JButton("Send");
+        btnSendMes.setBounds(900, 570, 60, 30);
+        f.add(btnSendMes);
+        btnSendMes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inpMessage.getText().isEmpty()) {
+                    String message = inpMessage.getText();
+                    chatBox.append(playerName + ":\n" + message + "\n");
+                    inpMessage.setText(null);
+                    sendMessage(message);
+                }
+            }
+        });
 
         //Ve ban caro
         btns = new JButton[x][y];
@@ -300,6 +333,16 @@ public class Client {
     //Gui ready len server
     public void sendReadyMessage() {
         String send = "player" + getId() + " ready";
+        try {
+            out.writeUTF(send);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Gui message len server
+    public void sendMessage(String mess) {
+        String send = "player " + getId() + " " + getPlayerName() + " message " + mess;
         try {
             out.writeUTF(send);
         } catch (IOException e) {

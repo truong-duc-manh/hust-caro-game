@@ -2,6 +2,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,12 +27,16 @@ public class Client {
     JFrame f;
     JFrame f1;
     JPanel p;
+    JScrollPane chatPane;
     JButton[][] btns;
     JButton btnOk;
     JButton btnSendMes;
     JTextField inpName;
     JTextField inpMessage;
-    JTextArea chatBox;
+    JTextPane chatBox;
+    SimpleAttributeSet left;
+    SimpleAttributeSet right;
+    StyledDocument doc;
     JLabel lblName;
     JLabel lblWaiting;
 
@@ -100,7 +108,6 @@ public class Client {
                 try {
                     while (true) {
                         String ret = in.readUTF();
-
                         if (ret.contains("server add client")) {
                             String[] temp = ret.split(" ");
                             System.out.println(Arrays.toString(temp));
@@ -110,7 +117,7 @@ public class Client {
                             else isYourTurn = false;
                         }
                         else if (ret.contains("caro")) {
-                            System.out.println("Print");
+                            System.out.println(ret);
                             SwingUtilities.invokeLater(() -> {
                                 fillBtn(ret);
                             });
@@ -119,9 +126,11 @@ public class Client {
                             isStarted = true;
                             togglePanel(isStarted);
                         }
+                        else if (ret.contains("message")){
+                            receiveMess(ret);
+                        }
 
                         if (ret == null) break;
-                        System.out.println("Server says: " + ret);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -169,13 +178,20 @@ public class Client {
         f.add(lblName);
 
         //Chat box
-        chatBox = new JTextArea();
-        chatBox.setBounds(650, 150, 300, 400);
-        chatBox.setAutoscrolls(true);
+        chatBox = new JTextPane();
         chatBox.setEditable(false);
-        chatBox.setLineWrap(true);
-        chatBox.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-        f.add(chatBox);
+        doc = chatBox.getStyledDocument();
+        left = new SimpleAttributeSet();
+        StyleConstants.setAlignment(left, StyleConstants.ALIGN_LEFT);
+        StyleConstants.setForeground(left, Color.RED);
+        right = new SimpleAttributeSet();
+        StyleConstants.setAlignment(right, StyleConstants.ALIGN_RIGHT);
+        StyleConstants.setForeground(right, Color.BLUE);
+
+        chatPane = new JScrollPane(chatBox);
+        chatPane.setBounds(650, 150, 300, 400);
+        chatPane.setVisible(true);
+        f.getContentPane().add(chatPane);
 
         //Input send message
         inpMessage = new JTextField();
@@ -191,7 +207,13 @@ public class Client {
             public void actionPerformed(ActionEvent e) {
                 if (!inpMessage.getText().isEmpty()) {
                     String message = inpMessage.getText();
-                    chatBox.append(playerName + ":\n" + message + "\n");
+                    String addToChatBox = "[" + playerName +"]" + "\n" + message + "\n\n";
+                    try {
+                        doc.setParagraphAttributes(doc.getLength(), 1, right, false);
+                        doc.insertString(doc.getLength(), addToChatBox, right);
+                    } catch (BadLocationException badLocationException) {
+                        badLocationException.printStackTrace();
+                    }
                     inpMessage.setText(null);
                     sendMessage(message);
                 }
@@ -225,8 +247,6 @@ public class Client {
         togglePanel(isStarted);
         f.setVisible(true);
     }
-
-
 
     //Screen nhap ten
     public void namePlayerScreen() {
@@ -306,6 +326,30 @@ public class Client {
         p.repaint();
     }
 
+    public void receiveMess(String ret) {
+        String[] retArr = ret.split("-");
+        String playerIdStr = "player" + getId();
+        if (!retArr[0].equals(playerIdStr)) {
+            System.out.println(playerIdStr);
+            String opName = retArr[1];
+            String mess = retArr[3];
+            String addToChatBox = "[" + opName + "]" + "\n" + mess + "\n\n";
+            try {
+                doc.setParagraphAttributes(doc.getLength(), 1, left, false);
+                doc.insertString(doc.getLength(), addToChatBox, left );
+            } catch (BadLocationException badLocationException) {
+                badLocationException.printStackTrace();
+            }
+        }
+    }
+
+    public void alertWin(String ret) {
+        String[] retArr = ret.split(" ");
+
+        JDialog d = new JDialog(f, "Win player");
+        JLabel l = new JLabel("");
+    }
+
     /**
     Logic gui message len server
      */
@@ -313,16 +357,6 @@ public class Client {
     //Gui message dia chi danh toi server
     public void sendCordToSer(int x, int y) {
         String send = "player" + getId() + " caro " + x + " " + y;
-        try {
-            out.writeUTF(send);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //Gui ten len server
-    public void sendName(String name) {
-        String send = "player" + getId() + " name " + name;
         try {
             out.writeUTF(send);
         } catch (IOException e) {
@@ -342,7 +376,7 @@ public class Client {
 
     //Gui message len server
     public void sendMessage(String mess) {
-        String send = "player " + getId() + " " + getPlayerName() + " message " + mess;
+        String send = "player" + getId() + "-" + getPlayerName() + "-message-" + mess;
         try {
             out.writeUTF(send);
         } catch (IOException e) {

@@ -39,19 +39,21 @@ public class ClientHandler implements Runnable{
                     if (firstSpace != -1) {
                         outToAll (ret.substring(firstSpace+1));
                     }
-                } else if (ret.contains("caro")){
+                } else if (ret.contains("caro") && !ret.contains("message")){
                     outToAll(ret);
                     addToMatrix(ret);
-                    System.out.println("Done");
-                    int winner = checkWinner();
-                    if (winner == 1) outToAll("player1 win");
-                    else if (winner == 2) outToAll("player2 win");
-                } else if (ret.contains("ready")) {
+                    if (isDraw()) outToAll("Draw");
+                    else {
+                        int winner = checkWinner();
+                        if (winner == 1) outToAll("player1 win");
+                        else if (winner == 2) outToAll("player2 win");
+                    }
+                } else if (ret.contains("ready") && !ret.contains("message")) {
                     System.out.println(ret);
                     System.out.println(clients.size());
                     startGame();
                 } else if (ret.contains("message")) {
-                    getAndSendMess(ret);
+                    outToAll(ret);
                 }
             }
         } catch (IOException e) {
@@ -97,11 +99,6 @@ public class ClientHandler implements Runnable{
         if (clients.size() == 2) {
             outToAll(send);
         }
-    }
-
-    //Nhan va gui message den cac client
-    public void getAndSendMess(String mess) {
-        System.out.println(mess);
     }
 
 
@@ -162,6 +159,18 @@ public class ClientHandler implements Runnable{
             }
         }
         return 0;
+    }
+
+    // Kiem tra hoa
+    public boolean isDraw() {
+        for (int i = 0; i < 30; i++) {
+            for (int j = 0; j < 30; j++) {
+                if (ClientHandler.matrix[i][j] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }

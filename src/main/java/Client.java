@@ -27,6 +27,7 @@ public class Client {
     JButton btnOk;
     JTextField inpName;
     JLabel lblName;
+    JLabel lblWaiting;
 
     int x,y;
     TicToe ticToe;
@@ -95,26 +96,29 @@ public class Client {
             public void run() {
                 try {
                     while (true) {
-                        String serverResponse = in.readUTF();
+                        String ret = in.readUTF();
 
-                        if (serverResponse.contains("server client")) {
-                            String[] temp = serverResponse.split(" ");
+                        if (ret.contains("server add client")) {
+                            String[] temp = ret.split(" ");
                             System.out.println(Arrays.toString(temp));
-                            setId(Integer.valueOf(temp[2]));
-                            setTicToe(TicToe.valueOf(temp[3]));
+                            setId(Integer.valueOf(temp[3]));
+                            setTicToe(TicToe.valueOf(temp[4]));
                             if (getId() == 1) isYourTurn = true;
                             else isYourTurn = false;
-                        } else if (serverResponse.contains("caro")) {
+                        }
+                        else if (ret.contains("caro")) {
                             System.out.println("Print");
                             SwingUtilities.invokeLater(() -> {
-                                fillBtn(serverResponse);
+                                fillBtn(ret);
                             });
-                        } else if (serverResponse.equalsIgnoreCase("server clients startgame")) {
-                            System.out.println("Start game");
+                        }
+                        else if (ret.equalsIgnoreCase("server allow clients game start")) {
+                            isStarted = true;
+                            togglePanel(isStarted);
                         }
 
-                        if (serverResponse == null) break;
-                        System.out.println("Server says: " + serverResponse);
+                        if (ret == null) break;
+                        System.out.println("Server says: " + ret);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -151,9 +155,14 @@ public class Client {
         p.setLayout(new GridLayout(x,y));
         f.add(p);
 
+        // Lbl cho nguoi choi khac
+        lblWaiting = new JLabel("Waiting for another player...");
+        lblWaiting.setBounds(220,300, 250,100);
+        f.add(lblWaiting);
+
         //Ten nguoi choi
         lblName = new JLabel();
-        lblName.setBounds(800, 50, 100,100);
+        lblName.setBounds(750, 50, 200,100);
         f.add(lblName);
 
         //Ve ban caro
@@ -178,10 +187,9 @@ public class Client {
                     }
                 });
                 p.add(btn);
-                p.setVisible(true);
             }
         }
-        togglePanel();
+        togglePanel(isStarted);
         f.setVisible(true);
     }
 
@@ -208,8 +216,10 @@ public class Client {
         btnOk.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                lblName.setText(inpName.getText());
+                String temp = "Player name: " + inpName.getText();
+                lblName.setText(temp);
                 setPlayerName(inpName.getText());
+                sendReadyMessage();
                 f1.setVisible(false);
                 f.setVisible(true);
             }
@@ -221,9 +231,15 @@ public class Client {
         f1.setVisible(true);
     }
 
-    public void togglePanel() {
-        if (isStarted) p.setVisible(true);
-        else p.setVisible(false);
+    public void togglePanel(boolean isStarted) {
+        if (isStarted) {
+            p.setVisible(true);
+            lblWaiting.setVisible(false);
+        }
+        else {
+            p.setVisible(false);
+            lblWaiting.setVisible(true);
+        }
     }
 
     /**
@@ -274,6 +290,16 @@ public class Client {
     //Gui ten len server
     public void sendName(String name) {
         String send = "player" + getId() + " name " + name;
+        try {
+            out.writeUTF(send);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Gui ready len server
+    public void sendReadyMessage() {
+        String send = "player" + getId() + " ready";
         try {
             out.writeUTF(send);
         } catch (IOException e) {

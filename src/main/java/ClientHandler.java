@@ -16,10 +16,12 @@ public class ClientHandler implements Runnable{
     private DataOutputStream out;
     private ArrayList<ClientHandler> clients;
     static int[][] matrix = new int[30][30];
+    private int readyClients;
 
     public ClientHandler(Socket clientSocket, ArrayList<ClientHandler> clients) throws IOException {
         this.client = clientSocket;
         this.clients = clients;
+        this.readyClients = 0;
         in = new DataInputStream(clientSocket.getInputStream());
         out = new DataOutputStream(clientSocket.getOutputStream());
     }
@@ -28,22 +30,26 @@ public class ClientHandler implements Runnable{
     public void run() {
         try {
             while (true) {
-                String request = in.readUTF();
-                if (request.contains("name")) {
+                String ret = in.readUTF();
+                if (ret.contains("name")) {
 //                    out.writeUTF(Server.getRandomName());
 
-                } else if (request.startsWith("say")) {
-                    int firstSpace = request.indexOf(" ");
+                } else if (ret.startsWith("say")) {
+                    int firstSpace = ret.indexOf(" ");
                     if (firstSpace != -1) {
-                        outToAll (request.substring(firstSpace+1));
+                        outToAll (ret.substring(firstSpace+1));
                     }
-                } else if (request.contains("caro")){
-                    outToAll(request);
-                    addToMatrix(request);
+                } else if (ret.contains("caro")){
+                    outToAll(ret);
+                    addToMatrix(ret);
                     System.out.println("Done");
                     int winner = checkWinner();
                     if (winner == 1) outToAll("player1 win");
                     else if (winner == 2) outToAll("player2 win");
+                } else if (ret.contains("ready")) {
+                    System.out.println(ret);
+                    System.out.println(clients.size());
+                    startGame();
                 }
             }
         } catch (IOException e) {
@@ -60,7 +66,7 @@ public class ClientHandler implements Runnable{
     }
 
     /**
-    Socket logic
+    Socket logic read message
      */
 
     //Them client vao game va chon x,o cho client
@@ -68,8 +74,7 @@ public class ClientHandler implements Runnable{
         String ticToe = "";
         if (numberClient == 1) ticToe = TicToe.X.getTictoe();
         else if (numberClient == 2) ticToe = TicToe.O.getTictoe();
-        String serverConnect = "server client " + numberClient + " " + ticToe;
-        System.out.println("Clients size " + clients.size());
+        String serverConnect = "server add client " + numberClient + " " + ticToe;
         out.writeUTF(serverConnect);
     }
 
@@ -86,8 +91,8 @@ public class ClientHandler implements Runnable{
 
     //Khi so luong client = 2 gui message ve client va bat dau game
     public void startGame() {
+        String send = "server allow clients game start";
         if (clients.size() == 2) {
-            String send = "server clients startgame";
             outToAll(send);
         }
     }

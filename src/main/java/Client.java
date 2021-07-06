@@ -227,7 +227,17 @@ public class Client {
             }
         });
 
-        //Ve ban caro
+        drawCaroBoard();
+
+        togglePanel(isStarted);
+
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.setVisible(true);
+    }
+
+    //Ve ban caro
+    public void drawCaroBoard() {
+        p.removeAll();
         btns = new JButton[x][y];
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
@@ -251,9 +261,7 @@ public class Client {
                 p.add(btn);
             }
         }
-        togglePanel(isStarted);
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setVisible(true);
+        p.updateUI();
     }
 
     //Screen nhap ten
@@ -357,7 +365,7 @@ public class Client {
         String[] retArr = ret.split(" ");
         String winPlayer = retArr[0];
         JDialog d = new JDialog(f, "Win Alert");
-        JLabel l = new JLabel(winPlayer + "win");
+        JLabel l = new JLabel(winPlayer + " win");
         JButton btnReset = new JButton("Play again");
 
         JPanel pn = new JPanel();
@@ -379,6 +387,9 @@ public class Client {
             public void actionPerformed(ActionEvent e) {
                 isReset = true;
                 sendResetGame();
+                drawCaroBoard();
+                if (playerName.equals(winPlayer)) isYourTurn = false;
+                else isYourTurn = true;
                 d.setVisible(false);
             }
         });

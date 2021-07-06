@@ -11,7 +11,7 @@ public class Server {
     private static String[] adjs = {"the gentle", "the un-gentle", "the overwrought"};
 
     private static ArrayList<ClientHandler> clients = new ArrayList<>();
-    private static ExecutorService pool = Executors.newFixedThreadPool(4);
+    private static ExecutorService pool = Executors.newFixedThreadPool(2);
     public static int clientId = 0;
 
     public static void main(String[] args) throws IOException {
@@ -30,12 +30,6 @@ public class Server {
 
             pool.execute(clientThread);
         }
-    }
-
-    public static String getRandomName() {
-        String name = names[(int) (Math.random() * names.length)];
-        String adj = adjs[(int) (Math.random() * adjs.length)];
-        return name + " " + adj;
     }
 }
 

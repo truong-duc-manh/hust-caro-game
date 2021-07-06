@@ -31,11 +31,8 @@ public class ClientHandler implements Runnable{
         try {
             while (true) {
                 String ret = in.readUTF();
-                if (ret.contains("name")) {
-//                    out.writeUTF(Server.getRandomName());
 
-                }
-                else if (ret.startsWith("say")) {
+                if (ret.startsWith("say")) {
                     int firstSpace = ret.indexOf(" ");
                     if (firstSpace != -1) {
                         outToAll (ret.substring(firstSpace+1));

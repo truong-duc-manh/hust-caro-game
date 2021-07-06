@@ -2,6 +2,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -46,12 +47,14 @@ public class Client {
     String playerName;
     boolean isStarted;
     boolean isYourTurn;
+    boolean isReset;
 
 
 
     public Client() throws IOException {
         this.isYourTurn = false;
         this.isStarted = false;
+        this.isReset = false;
         this.playerName = "";
         this.socket = new Socket(SERVER_IP, SERVER_PORT);
         this.in = new DataInputStream(socket.getInputStream());
@@ -129,7 +132,11 @@ public class Client {
                         else if (ret.contains("message")){
                             receiveMess(ret);
                         }
+                        else if (ret.contains("win")){
+                            alertWin(ret);
+                        }
 
+                        System.out.println("[SERVER] says: " + ret);
                         if (ret == null) break;
                     }
                 } catch (IOException e) {
@@ -245,6 +252,7 @@ public class Client {
             }
         }
         togglePanel(isStarted);
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setVisible(true);
     }
 
@@ -294,6 +302,8 @@ public class Client {
             lblWaiting.setVisible(true);
         }
     }
+
+
 
     /**
     Logic xu li message nhan tu server
@@ -345,9 +355,33 @@ public class Client {
 
     public void alertWin(String ret) {
         String[] retArr = ret.split(" ");
+        String winPlayer = retArr[0];
+        JDialog d = new JDialog(f, "Win Alert");
+        JLabel l = new JLabel(winPlayer + "win");
+        JButton btnReset = new JButton("Play again");
 
-        JDialog d = new JDialog(f, "Win player");
-        JLabel l = new JLabel("");
+        JPanel pn = new JPanel();
+        pn.setLayout(new BoxLayout(pn, BoxLayout.Y_AXIS));
+        pn.setBorder(new EmptyBorder(20,10,20,10));
+        pn.add(l);
+        pn.add(btnReset);
+
+        l.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnReset.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        d.add(pn);
+        d.setSize(200,200);
+        d.setLocation(f.getX()+200,f.getY()+200);
+        d.setVisible(true);
+
+        btnReset.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isReset = true;
+                sendResetGame();
+                d.setVisible(false);
+            }
+        });
     }
 
     /**
@@ -356,7 +390,7 @@ public class Client {
 
     //Gui message dia chi danh toi server
     public void sendCordToSer(int x, int y) {
-        String send = "player" + getId() + " caro " + x + " " + y;
+        String send = "player" + getId() + " caro " + x + " " + y + " " + getPlayerName();
         try {
             out.writeUTF(send);
         } catch (IOException e) {
@@ -377,6 +411,15 @@ public class Client {
     //Gui message len server
     public void sendMessage(String mess) {
         String send = "player" + getId() + "-" + getPlayerName() + "-message-" + mess;
+        try {
+            out.writeUTF(send);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendResetGame() {
+        String send = "player" + getId() + " " + getPlayerName() + " " + "reset";
         try {
             out.writeUTF(send);
         } catch (IOException e) {

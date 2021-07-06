@@ -34,27 +34,38 @@ public class ClientHandler implements Runnable{
                 if (ret.contains("name")) {
 //                    out.writeUTF(Server.getRandomName());
 
-                } else if (ret.startsWith("say")) {
+                }
+                else if (ret.startsWith("say")) {
                     int firstSpace = ret.indexOf(" ");
                     if (firstSpace != -1) {
                         outToAll (ret.substring(firstSpace+1));
                     }
-                } else if (ret.contains("caro") && !ret.contains("message")){
+                }
+                else if (ret.contains("caro") && !ret.contains("message")){
                     outToAll(ret);
                     addToMatrix(ret);
                     if (isDraw()) outToAll("Draw");
                     else {
+                        String[] strs = ret.split(" ");
+                        String playerName = strs[4];
                         int winner = checkWinner();
-                        if (winner == 1) outToAll("player1 win");
-                        else if (winner == 2) outToAll("player2 win");
+                        if (winner == 1) outToAll(playerName + " win");
+                        else if (winner == 2) outToAll(playerName + " win");
                     }
-                } else if (ret.contains("ready") && !ret.contains("message")) {
+                }
+                else if (ret.contains("ready") && !ret.contains("message")) {
                     System.out.println(ret);
                     System.out.println(clients.size());
                     startGame();
-                } else if (ret.contains("message")) {
+                }
+                else if (ret.contains("message")) {
                     outToAll(ret);
                 }
+                else if (ret.contains("reset")){
+                    outToAll(ret);
+                    resetMatrix();
+                }
+
             }
         } catch (IOException e) {
             System.err.println("IO exception in client handler");
@@ -171,6 +182,15 @@ public class ClientHandler implements Runnable{
             }
         }
         return true;
+    }
+
+    // Reset matrix
+    public void resetMatrix() {
+        for (int i = 0; i < 30; i++) {
+            for (int j = 0; j < 30; j++) {
+                ClientHandler.matrix[i][j] = 0;
+            }
+        }
     }
 
 }

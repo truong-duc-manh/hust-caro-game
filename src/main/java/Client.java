@@ -1,5 +1,6 @@
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,6 +11,8 @@ import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
@@ -128,6 +131,13 @@ public class Client {
                         else if (ret.contains("win")){
                             alertWin(ret);
                         }
+                        else if (ret.contains("full")){
+                            receiveServerFull();
+                        }
+                        else if (ret.equalsIgnoreCase("server game not ready")){
+                            isStarted = false;
+                            togglePanel(isStarted);
+                        }
 
                         System.out.println("[SERVER] says: " + ret);
                         if (ret == null) break;
@@ -225,6 +235,20 @@ public class Client {
         togglePanel(isStarted);
 
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Them su kien tat frame
+        f.addWindowListener(new WindowAdapter() {
+            @SneakyThrows
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                sendExitGame();
+                in.close();
+                out.close();
+//                socket.close();
+            }
+        });
+
         f.setVisible(true);
     }
 
@@ -305,8 +329,6 @@ public class Client {
         }
     }
 
-
-
     /**
     Logic xu li message nhan tu server
      */
@@ -316,23 +338,33 @@ public class Client {
         String[] temp = ret.split(" ");
         System.out.println(Arrays.toString(temp));
         setId(Integer.valueOf(temp[3]));
-        if (temp.length == 5) {
-            setTicToe(TicToe.valueOf(temp[4]));
-            if (getId() == 1) isYourTurn = true;
-            else isYourTurn = false;
-            return;
-        } else {
-            f1.setVisible(false);
-            f.setVisible(false);
-            JFrame jFrame = new JFrame();
-            jFrame.setSize(200,200);
-            JPanel jPanel = new JPanel();
-            JLabel jLabel = new JLabel("There are two player playing...");
-            jPanel.add(jLabel);
-            jFrame.add(jPanel);
-            jFrame.setVisible(true);
-        }
+        setTicToe(TicToe.valueOf(temp[4]));
+        if (getId() == 1) isYourTurn = true;
+        else isYourTurn = false;
+    }
 
+    private void receiveServerFull() {
+        f1.setVisible(false);
+        f.setVisible(false);
+        JFrame jFrame = new JFrame();
+        jFrame.setSize(300,100);
+        JPanel jPanel = new JPanel();
+        jPanel.setBorder(new EmptyBorder(20,10,20,10));
+        JLabel jLabel = new JLabel("There are two player playing...");
+        jPanel.add(jLabel);
+        jFrame.add(jPanel);
+        jFrame.setVisible(true);
+        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        jFrame.addWindowListener(new WindowAdapter() {
+            @SneakyThrows
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                in.close();
+                out.close();
+//                socket.close();
+            }
+        });
     }
 
     //Danh dau vao o chon
@@ -447,8 +479,19 @@ public class Client {
         }
     }
 
+    // Gui reset game len server
     public void sendResetGame() {
         String send = "player" + getId() + " " + getPlayerName() + " " + "reset";
+        try {
+            out.writeUTF(send);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Gui tat game len server
+    public void sendExitGame() {
+        String send = "player" + " " + getId() + " " + "exit";
         try {
             out.writeUTF(send);
         } catch (IOException e) {

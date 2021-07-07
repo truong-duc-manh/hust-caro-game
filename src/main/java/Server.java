@@ -10,7 +10,7 @@ public class Server {
     private static String[] names = {"Willy", "Felix", "Carlsbad", "Hobob"};
     private static String[] adjs = {"the gentle", "the un-gentle", "the overwrought"};
 
-    private static ArrayList<ClientHandler> clients = new ArrayList<>();
+    private static ClientHandler[] clients = new ClientHandler[100];
     private static ExecutorService pool = Executors.newFixedThreadPool(4);
     public static int clientId = 0;
 
@@ -19,14 +19,13 @@ public class Server {
 
         while (true) {
             System.out.println("[SERVER] Wating for client connection...");
-
             Socket client = listener.accept();
-            System.out.println("Clients handler size: " + clients.size());
-            clientId++;
+
             System.out.println(clientId);
             System.out.println("[SERVER] Connected to client!");
-            ClientHandler clientThread = new ClientHandler(client, clients);
-            clients.add(clientThread);
+            clientId++;
+            ClientHandler clientThread = new ClientHandler(client, clients, clientId);
+            clients[clientId] = clientThread;
             clientThread.addClient(clientId);
             pool.execute(clientThread);
 

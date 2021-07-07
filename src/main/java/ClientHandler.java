@@ -14,14 +14,15 @@ public class ClientHandler implements Runnable{
     private Socket client;
     private DataInputStream in;
     private DataOutputStream out;
-    private ArrayList<ClientHandler> clients;
+    private ClientHandler[] clients;
     static int[][] matrix = new int[30][30];
-    private int readyClients;
+    static int[] game = new int[2];
+    private int clientId;
 
-    public ClientHandler(Socket clientSocket, ArrayList<ClientHandler> clients) throws IOException {
+    public ClientHandler(Socket clientSocket, ClientHandler[] clients, int clientId) throws IOException {
         this.client = clientSocket;
         this.clients = clients;
-        this.readyClients = 0;
+        this.clientId = clientId;
         in = new DataInputStream(clientSocket.getInputStream());
         out = new DataOutputStream(clientSocket.getOutputStream());
     }
@@ -52,7 +53,6 @@ public class ClientHandler implements Runnable{
                 }
                 else if (ret.contains("ready") && !ret.contains("message")) {
                     System.out.println(ret);
-                    System.out.println(clients.size());
                     startGame();
                 }
                 else if (ret.contains("message")) {
@@ -61,6 +61,9 @@ public class ClientHandler implements Runnable{
                 else if (ret.contains("reset")){
                     outToAll(ret);
                     resetMatrix();
+                }
+                else if (ret.contains("exit")){
+//                    handlePlayerExit(ret);
                 }
 
             }
@@ -71,6 +74,7 @@ public class ClientHandler implements Runnable{
             try {
                 out.close();
                 in.close();
+                client.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -82,37 +86,59 @@ public class ClientHandler implements Runnable{
      */
 
     //Them client vao game va chon x,o cho client
-    public void addClient(int numberClient) throws IOException {
+    public void addClient(int clientId) throws IOException {
         String ticToe = "";
-        if (numberClient <= 2) {
-            if (numberClient == 1) ticToe = TicToe.X.getTictoe();
-            else if (numberClient == 2) ticToe = TicToe.O.getTictoe();
-            String serverConnect = "server add client " + numberClient + " " + ticToe;
-            out.writeUTF(serverConnect);
-        } else {
-            String serverConnectViewer = "server add client " + numberClient;
-            out.writeUTF(serverConnectViewer);
+        for (int i = 0; i < ClientHandler.game.length; i++) {
+            if (ClientHandler.game[i] == 0) {
+                if (i == 0) ticToe = TicToe.X.getTictoe();
+                else ticToe = TicToe.O.getTictoe();
+                ClientHandler.game[i] = 1;
+                String serverConnect = "server add client " + (i+1) + " " + ticToe;
+                out.writeUTF(serverConnect);
+                return;
+            }
         }
+        String serverFull = "server full";
+        out.writeUTF(serverFull);
     }
 
     // Gui message den tat ca client
     public void outToAll(String msg) {
-        for (ClientHandler aClient : clients) {
-            try {
-                aClient.out.writeUTF(msg);
-            } catch (IOException e) {
-                e.printStackTrace();
+        for (int i = 0; i < clients.length; i++) {
+            if (clients[i] != null) {
+                try {
+                    clients[i].out.writeUTF(msg);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+
+    //Gui message den 2 player
+    public void outToPlayers(String msg) {
+
     }
 
     //Khi so luong client = 2 gui message ve client va bat dau game
     public void startGame() {
         String send = "server allow clients game start";
-        if (clients.size() == 2) {
+        if (ClientHandler.game[0] != 0 && ClientHandler.game[1] != 0) {
             outToAll(send);
         }
     }
+
+//    public void handlePlayerExit(String ret) {
+//        String[] strs = ret.split(" ");
+//        int playerId = Integer.valueOf(strs[1]);
+//        int playerIndex = playerId - 1;
+//
+//        clients.remove(playerIndex);
+//        ClientHandler.game[playerIndex] = 0;
+//        String send = "server game not ready";
+//        System.out.println(clients.size());
+//        outToAll(send);
+//    }
 
 
     /**

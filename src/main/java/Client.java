@@ -49,8 +49,6 @@ public class Client {
     boolean isYourTurn;
     boolean isReset;
 
-
-
     public Client() throws IOException {
         this.isYourTurn = false;
         this.isStarted = false;
@@ -112,12 +110,7 @@ public class Client {
                     while (true) {
                         String ret = in.readUTF();
                         if (ret.contains("server add client")) {
-                            String[] temp = ret.split(" ");
-                            System.out.println(Arrays.toString(temp));
-                            setId(Integer.valueOf(temp[3]));
-                            setTicToe(TicToe.valueOf(temp[4]));
-                            if (getId() == 1) isYourTurn = true;
-                            else isYourTurn = false;
+                            receiveServerAccept(ret);
                         }
                         else if (ret.contains("caro")) {
                             System.out.println(ret);
@@ -300,6 +293,7 @@ public class Client {
         f1.setVisible(true);
     }
 
+    // Bat pannel khi game bat dau
     public void togglePanel(boolean isStarted) {
         if (isStarted) {
             p.setVisible(true);
@@ -316,6 +310,30 @@ public class Client {
     /**
     Logic xu li message nhan tu server
      */
+
+    //Duoc chap nhan tu server
+    public void receiveServerAccept(String ret) {
+        String[] temp = ret.split(" ");
+        System.out.println(Arrays.toString(temp));
+        setId(Integer.valueOf(temp[3]));
+        if (temp.length == 5) {
+            setTicToe(TicToe.valueOf(temp[4]));
+            if (getId() == 1) isYourTurn = true;
+            else isYourTurn = false;
+            return;
+        } else {
+            f1.setVisible(false);
+            f.setVisible(false);
+            JFrame jFrame = new JFrame();
+            jFrame.setSize(200,200);
+            JPanel jPanel = new JPanel();
+            JLabel jLabel = new JLabel("There are two player playing...");
+            jPanel.add(jLabel);
+            jFrame.add(jPanel);
+            jFrame.setVisible(true);
+        }
+
+    }
 
     //Danh dau vao o chon
     public void fillBtn (String ret) {
@@ -437,7 +455,4 @@ public class Client {
             e.printStackTrace();
         }
     }
-
-
-
 }

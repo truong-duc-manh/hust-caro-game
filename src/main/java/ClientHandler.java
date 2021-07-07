@@ -84,10 +84,15 @@ public class ClientHandler implements Runnable{
     //Them client vao game va chon x,o cho client
     public void addClient(int numberClient) throws IOException {
         String ticToe = "";
-        if (numberClient == 1) ticToe = TicToe.X.getTictoe();
-        else if (numberClient == 2) ticToe = TicToe.O.getTictoe();
-        String serverConnect = "server add client " + numberClient + " " + ticToe;
-        out.writeUTF(serverConnect);
+        if (numberClient <= 2) {
+            if (numberClient == 1) ticToe = TicToe.X.getTictoe();
+            else if (numberClient == 2) ticToe = TicToe.O.getTictoe();
+            String serverConnect = "server add client " + numberClient + " " + ticToe;
+            out.writeUTF(serverConnect);
+        } else {
+            String serverConnectViewer = "server add client " + numberClient;
+            out.writeUTF(serverConnectViewer);
+        }
     }
 
     // Gui message den tat ca client

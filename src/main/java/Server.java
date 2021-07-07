@@ -11,7 +11,7 @@ public class Server {
     private static String[] adjs = {"the gentle", "the un-gentle", "the overwrought"};
 
     private static ArrayList<ClientHandler> clients = new ArrayList<>();
-    private static ExecutorService pool = Executors.newFixedThreadPool(2);
+    private static ExecutorService pool = Executors.newFixedThreadPool(4);
     public static int clientId = 0;
 
     public static void main(String[] args) throws IOException {
@@ -19,16 +19,17 @@ public class Server {
 
         while (true) {
             System.out.println("[SERVER] Wating for client connection...");
-            Socket client = listener.accept();
-            clientId++;
 
+            Socket client = listener.accept();
+            System.out.println("Clients handler size: " + clients.size());
+            clientId++;
             System.out.println(clientId);
             System.out.println("[SERVER] Connected to client!");
             ClientHandler clientThread = new ClientHandler(client, clients);
             clients.add(clientThread);
             clientThread.addClient(clientId);
-
             pool.execute(clientThread);
+
         }
     }
 }

@@ -112,7 +112,7 @@ public class Client {
                 try {
                     while (true) {
                         String ret = in.readUTF();
-                        if (ret.contains("server add client")) {
+                        if (ret.contains("server add client") && !ret.contains("message")) {
                             receiveServerAccept(ret);
                         }
                         else if (ret.contains("caro")) {

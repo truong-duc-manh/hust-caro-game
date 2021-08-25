@@ -7,8 +7,6 @@ import java.util.concurrent.Executors;
 
 public class Server {
     private static final int PORT = 9090;
-    private static String[] names = {"Willy", "Felix", "Carlsbad", "Hobob"};
-    private static String[] adjs = {"the gentle", "the un-gentle", "the overwrought"};
 
     private static ClientHandler[] clients = new ClientHandler[100];
     private static ExecutorService pool = Executors.newFixedThreadPool(2);

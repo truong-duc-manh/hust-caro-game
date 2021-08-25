@@ -10,7 +10,7 @@ public class Server {
 
     private static ClientHandler[] clients = new ClientHandler[100];
     private static ExecutorService pool = Executors.newFixedThreadPool(2);
-    public static int clientId = 0;
+    public static int clientId = 1;
 
     public static void main(String[] args) throws IOException {
         ServerSocket listener = new ServerSocket(PORT);

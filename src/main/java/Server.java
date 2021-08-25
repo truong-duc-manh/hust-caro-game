@@ -11,7 +11,7 @@ public class Server {
     private static String[] adjs = {"the gentle", "the un-gentle", "the overwrought"};
 
     private static ClientHandler[] clients = new ClientHandler[100];
-    private static ExecutorService pool = Executors.newFixedThreadPool(4);
+    private static ExecutorService pool = Executors.newFixedThreadPool(2);
     public static int clientId = 0;
 
     public static void main(String[] args) throws IOException {
